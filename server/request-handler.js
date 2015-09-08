@@ -11,6 +11,7 @@ this file and include it in basic-server.js so that it actually works.
 *Hint* Check out the node module documentation at http://nodejs.org/api/modules.html.
 
 **************************************************************/
+var md5 = require("md5");
 var messages = [];
 
 var requestHandler = function(request, response) {
@@ -20,7 +21,10 @@ var requestHandler = function(request, response) {
   var headers = defaultCorsHeaders;
   headers['Content-Type'] = "application/JSON";
 
-  if (request.url === "/classes/messages") {
+  if ( request.method === 'OPTIONS') {
+    response.writeHead(statusCode, headers);
+    response.end();
+  } else if (request.url === "/classes/messages") {
     response.writeHead(statusCode, headers);
     response.end(JSON.stringify({"Hello, World!": "Hello, World!", results: []}));
   } else if (request.url === "/send") {
@@ -38,7 +42,9 @@ var requestHandler = function(request, response) {
 
         var messageObj = {
           username: post.username,
-          message: post.message
+          message: post.message,
+          objectId: md5(Date.now().toString()),
+          roomname: post.roomname
         };
 
         messages.push(messageObj);
@@ -53,7 +59,8 @@ var requestHandler = function(request, response) {
   } else if (request.url === "/classes/room1") {
     if (request.method === "GET") {
       response.writeHead(statusCode, headers);
-      response.end(JSON.stringify({results: messages}));
+      console.log(messages.slice(0).reverse());
+      response.end(JSON.stringify({results: messages.slice(0).reverse()}));
     } else if (request.method === "POST") {
       statusCode = 201;
       response.writeHead(statusCode, headers);
@@ -67,7 +74,9 @@ var requestHandler = function(request, response) {
         post = JSON.parse(rawData);
         var messageObj = {
           username: post.username,
-          message: post.message
+          message: post.message,
+          objectId: md5(Date.now().toString()),
+          roomname: post.roomname
         };
 
         messages.push(messageObj);
